@@ -6,6 +6,7 @@ import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 import matplotlib.pyplot as plt
+from torchvision.transforms.autoaugment import AutoAugmentPolicy
 
 # Use GPU
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -17,10 +18,23 @@ print(device)
 batch_size = 16
 epochs = 1
 learning_rate = 0.001
+augment = True
+# no auto-augment policy autoperformed default or random rotation
+policy = transforms.AutoAugmentPolicy.CIFAR10
 
 # dataset load
 train = torchvision.datasets.MNIST(root='./data', train=True, 
                                    download=True, transform=transforms.ToTensor())
+
+if augment:
+    aug_transform = transforms.Compose(
+    [#transforms.RandomPerspective(distortion_scale=0.2, p=1.0),
+     transforms.RandomRotation(degrees=(-30, 30)), # best augmentation performed equally as well as no augmentation,
+     #transforms.RandomAffine(degrees=(0, 30), translate=(0.1, 0.3), scale=(1, 1.5)),
+     #transforms.AutoAugment(policy),
+     transforms.ToTensor()])
+    train = torchvision.datasets.MNIST(root='./data', train=True, 
+                                   download=True, transform=aug_transform)
 
 train_set, val_set = torch.utils.data.random_split(train, [50000, 10000])
 
@@ -34,7 +48,7 @@ test = torchvision.datasets.MNIST(root='./data', train=False,
                                   download=True, transform=transforms.ToTensor())
 
 testloader = torch.utils.data.DataLoader(test, batch_size=batch_size,
-                                         shuffle=True, num_workers=0)
+                                         shuffle=True, num_workers=0)    
 
 # define CNN
 class Net(nn.Module):
@@ -58,7 +72,8 @@ net = Net()
 net.to(device)
 
 # define loss function
-criterion = nn.CrossEntropyLoss()
+#criterion = nn.BCELoss()
+criterion = nn.BCEWithLogitsLoss()
 
 # define optimizer
 optimizer = optim.AdamW(net.parameters(), lr=0.001)
@@ -79,9 +94,12 @@ for epoch in range(epochs):  # loop over the dataset multiple times
         # zero the parameter gradients
         optimizer.zero_grad()
         
+        # set num_classes in case batch size doesn't contain all labels
+        one_hot_labels = F.one_hot(labels, num_classes=10)
+        
         # forward + backward + optimize
         outputs = net(inputs)
-        loss = criterion(outputs, labels)
+        loss = criterion(outputs, one_hot_labels.float())
         loss.backward()
         optimizer.step()
         
@@ -105,6 +123,7 @@ plt.plot(epoch_running_losses)
 plt.title('Running loss of MNIST CNN for batch_size = ' + str(batch_size) + ', epochs = ' + str(epochs) + ', and lr = ' + str(learning_rate))
 plt.show()
 
+#plt.imshow(trainset.data[0], cmap='gray')
 correct = 0
 total = 0
 # since we're not training, we don't need to calculate the gradients for our outputs
