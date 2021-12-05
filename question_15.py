@@ -75,8 +75,8 @@ class Net(nn.Module):
             gpool = nn.AvgPool2d(n, n)        
         x = gpool(x)
         
-        # not sure why I still have to flatten it
-        x = torch.flatten(x, 1) # flatten all dimensions except batch
+        # squeeze 1-dimensions
+        x = torch.squeeze(x)
         
         x = self.fc1(x)
         return x
