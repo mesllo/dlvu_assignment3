@@ -51,23 +51,37 @@ testloader = torch.utils.data.DataLoader(test, batch_size=batch_size,
 
 # define CNN
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, N=64, global_mean_pool=False):
         super().__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)        
+        self.conv3 = nn.Conv2d(in_channels=32, out_channels=N, kernel_size=3, stride=1, padding=1)        
         self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(64 * 3 * 3, 10)
+        self.fc1 = nn.Linear(N, 10)
+        
+        # other attributes
+        self.N = N
+        self.has_global_mean_pool = global_mean_pool
         
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         x = self.pool(F.relu(self.conv3(x)))
+        
+        # get dim of square matrix and apply global pool
+        n = (x.size()[-1])        
+        gpool = nn.MaxPool2d(n, n)
+        if self.has_global_mean_pool:
+            gpool = nn.AvgPool2d(n, n)        
+        x = gpool(x)
+        
+        # not sure why I still have to flatten it
         x = torch.flatten(x, 1) # flatten all dimensions except batch
+        
         x = self.fc1(x)
         return x
     
-net = Net()
+net = Net(N=81, global_mean_pool=True)
 net.to(device)
 
 no_of_params = 0
@@ -101,7 +115,7 @@ for epoch in range(epochs):  # loop over the dataset multiple times
 
     running_loss = 0.0
     
-    for i, data in enumerate(trainloader):        
+    for i, data in enumerate(trainloader):     
         # use GPU
         inputs, labels = data[0].to(device), data[1].to(device)
         
@@ -128,12 +142,12 @@ for epoch in range(epochs):  # loop over the dataset multiple times
         # print statistics
         running_loss += loss.item()
         
-        if i % d == 0 and i is not 0:    # print every d batches
+        if i % d == 0 and i is not 0:    # print every 100 batches
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / d))
             running_losses.append(running_loss/d)
             running_loss = 0.0
-            
+
             ## Compute validation accuracy
             o = net(val_inputs)
             _, predicted = torch.max(o.data, 1) # outputs max and max_indices
