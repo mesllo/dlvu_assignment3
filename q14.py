@@ -26,10 +26,19 @@ policy = transforms.AutoAugmentPolicy.CIFAR10
 train_loaders = {}; val_loaders = {}; test_loaders = {}
 if variable:
     data_path = './mnist-varres'
-    transforms = transforms.Compose([transforms.Grayscale(num_output_channels=1),
+    if augment:
+        transforms.Compose([transforms.Grayscale(num_output_channels=1),
+                            # transforms.RandomPerspective(distortion_scale=0.2, p=1.0),
+                            transforms.RandomRotation(degrees=(-30, 30)),
+                            # best augmentation performed equally as well as no augmentation,
+                            # transforms.RandomAffine(degrees=(0, 30), translate=(0.1, 0.3), scale=(1, 1.5)),
+                            # transforms.AutoAugment(policy),
+                            transforms.ToTensor()])
+    else:
+        transform = transforms.Compose([transforms.Grayscale(num_output_channels=1),
                                      transforms.ToTensor()])
-    train = datasets.ImageFolder(root=data_path + '/train', transform=transforms)
-    test = datasets.ImageFolder(root=data_path + '/test', transform=transforms)
+    train = datasets.ImageFolder(root=data_path + '/train', transform=transform)
+    test = datasets.ImageFolder(root=data_path + '/test', transform=transform)
 
     resolutions = {}; train_sets = {}; val_sets = {}; test_sets = {}; testres = {}
     for index, image in enumerate(train):
@@ -58,18 +67,18 @@ if variable:
                                                shuffle=True, num_workers=0)
 else:
     if augment:
-        aug_transform = transforms.Compose(
+        transform = transforms.Compose(
             [  # transforms.RandomPerspective(distortion_scale=0.2, p=1.0),
                 transforms.RandomRotation(degrees=(-30, 30)),
                 # best augmentation performed equally as well as no augmentation,
                 # transforms.RandomAffine(degrees=(0, 30), translate=(0.1, 0.3), scale=(1, 1.5)),
                 # transforms.AutoAugment(policy),
                 transforms.ToTensor()])
-        train = torchvision.datasets.MNIST(root='./data', train=True,
-                                       download=True, transform=aug_transform)
     else:
-        train = torchvision.datasets.MNIST(root='./data', train=True,
-                                       download=True, transform=transforms.ToTensor())
+        transform = transforms.ToTensor()
+
+    train = torchvision.datasets.MNIST(root='./data', train=True,
+                                       download=True, transform=transform)
     test = torchvision.datasets.MNIST(root='./data', train=False,
                                       download=True, transform=transforms.ToTensor())
     train_set, val_set = torch.utils.data.random_split(train, [50000, 10000])
