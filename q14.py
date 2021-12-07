@@ -139,7 +139,7 @@ print('Number of parameters: ' + str(no_of_params))
 criterion = nn.BCEWithLogitsLoss()
 
 # define optimizer
-optimizer = optim.AdamW(net.parameters(), lr=0.1)
+optimizer = optim.AdamW(net.parameters(), lr=0.001)
 
 # define loss lists to collect errors for plotting
 running_losses = []
