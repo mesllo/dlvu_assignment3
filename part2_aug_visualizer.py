@@ -12,7 +12,7 @@ policy = transforms.AutoAugmentPolicy.CIFAR10
 
 aug_transform = transforms.Compose(
     [#transforms.RandomPerspective(distortion_scale=0.6, p=1.0),
-     transforms.RandomRotation(degrees=(-30, 30)), # best augmentation performed equally as well as no augmentation,
+     transforms.RandomRotation(degrees=(-30, 30)), # best augmentation performed equally as well as with no augmentation,
      #transforms.RandomAffine(degrees=(0, 30), translate=(0.1, 0.3), scale=(1, 1.5)),
      #transforms.AutoAugment(policy),
      transforms.ToTensor()])
@@ -37,7 +37,7 @@ batch_idx, (img, label) = next(imgs)
 aug_batch_idx, (aug_img, aug_label) = next(aug_imgs)
 
 # visualize augmentation example
-plt.imshow(img[4][0], cmap="gray")
+plt.imshow(img[7][0], cmap="gray")
 plt.show()
-plt.imshow(aug_img[4][0], cmap="gray")
+plt.imshow(aug_img[7][0], cmap="gray")
 plt.show()

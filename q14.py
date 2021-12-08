@@ -14,9 +14,9 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 # params
-batch_size = 50
-epochs = 10
-learning_rate = 0.1
+batch_size = 16
+epochs = 3
+learning_rate = 0.001
 augment = False
 variable = True
 
@@ -25,7 +25,7 @@ policy = transforms.AutoAugmentPolicy.CIFAR10
 
 train_loaders = {}; val_loaders = {}; test_loaders = {}
 if variable:
-    data_path = './mnist-varres'
+    data_path = './data/mnist-varres'
     if augment:
         transforms.Compose([transforms.Grayscale(num_output_channels=1),
                             # transforms.RandomPerspective(distortion_scale=0.2, p=1.0),
@@ -211,22 +211,22 @@ print('Finished Training')
 
 # plot running loss to show training behaviour changes
 plt.ylabel('Running loss')
-plt.xlabel('Batch ID')
+plt.xlabel('Batch')
 # range(0, int(50000/batch_size), d)) is not working for the ticks
-plt.xticks(range(len(running_losses)))
+#plt.xticks(range(len(running_losses)))
 plt.plot(running_losses)
 plt.title(
-    'Running loss of MNIST CNN for batch_size = ' + str(batch_size) + ', epochs = ' + str(epochs) + ', and lr = ' + str(
+    'Running loss for batch_size = ' + str(batch_size) + ', epochs = ' + str(epochs) + ', and lr = ' + str(
         learning_rate))
 plt.show()
 
 # plot validation accuracy to show training behaviour changes
 plt.ylabel('Validation accuracy')
-plt.xlabel('Batch ID')
+plt.xlabel('Batches')
 # range(0, int(50000/batch_size), d)) is not working for the ticks
-plt.xticks(range(len(val_accs)))
+#plt.xticks(range(len(val_accs)))
 plt.plot(val_accs)
-plt.title('Validation accuracy of MNIST CNN for batch_size = ' + str(batch_size) + ', epochs = ' + str(
+plt.title('Validation accuracy for batch_size = ' + str(batch_size) + ', epochs = ' + str(
     epochs) + ', and lr = ' + str(learning_rate))
 plt.show()
 

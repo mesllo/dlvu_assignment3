@@ -17,7 +17,7 @@ print(device)
 batch_size = 16
 epochs = 1
 learning_rate = 0.001
-augment = False
+augment = True
 # no auto-augment policy autoperformed default or random rotation
 policy = transforms.AutoAugmentPolicy.CIFAR10
 
